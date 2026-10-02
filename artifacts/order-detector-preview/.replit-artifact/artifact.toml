@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/order-detector-preview/"
+title = "Order Detector Preview"
+description = "A preview shell that opens the existing Django-rendered Order Detector website so the dashboard can be viewed as a web artifact without replacing its templates, CSS, or vanilla JavaScript."
+version = "1.0.0"
+id = "artifacts/order-detector-preview"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/order-detector-preview/" ]
+localPort = 21308
+
+[services.development]
+run = "pnpm --filter @workspace/order-detector-preview run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/order-detector-preview", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/order-detector-preview/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21308"
+BASE_PATH = "/order-detector-preview/"
