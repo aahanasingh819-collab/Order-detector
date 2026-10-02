@@ -4,5 +4,5 @@ openai>=2.0,<3
 python-dotenv>=1.0,<2
 gunicorn>=23,<24
 whitenoise>=6.9,<7
-gunicorn>=23,<24
-whitenoise>=6.9,<7
+dj-database-url
+psycopg2-binary
