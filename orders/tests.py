@@ -176,8 +176,8 @@ class OrderApplicationTests(TestCase):
         self.assertEqual(InvestigationNote.objects.filter(order=self.order).count(), 1)
         self.assertEqual(note_response.data["created_by"], "Reviewer")
 
-    @override_settings(OPENAI_API_KEY="")
-    def test_missing_openai_key_returns_clear_service_unavailable(self):
+    @override_settings(GEMINI_API_KEY="")
+    def test_missing_gemini_key_returns_clear_service_unavailable(self):
         response = self.client.post(
             f"/risk-api/v1/orders/{self.order.pk}/explanation/",
             {"regenerate": False},
@@ -185,7 +185,7 @@ class OrderApplicationTests(TestCase):
         )
         self.assertEqual(response.status_code, 503)
         self.assertIn("currently unavailable", response.data["detail"])
-        self.assertNotIn("OPENAI_API_KEY", response.data)
+        self.assertNotIn("GEMINI_API_KEY", response.data)
 
     @patch(
         "orders.api_views.generate_order_explanation",

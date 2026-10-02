@@ -90,7 +90,7 @@ def order_detail(request, pk):
         {
             "order": order,
             "behaviour": behaviour,
-            "ai_enabled": bool(settings.OPENAI_API_KEY),
+            "ai_enabled": bool(settings.GEMINI_API_KEY),
             "status_choices": Order.InvestigationStatus.choices,
         },
     )
