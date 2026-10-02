@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}{{ order.order_number }} · Order Detector{% endblock %}
+{% block content %}
+  <div class="breadcrumb"><a href="{% url 'dashboard' %}">Dashboard</a><span aria-hidden="true">/</span><span>{{ order.order_number }}</span></div>
+  <section class="detail-heading">
+    <div>
+      <p class="eyebrow">ORDER INVESTIGATION</p>
+      <h1>{{ order.order_number }}</h1>
+      <p class="page-description">Review the order evidence and record your investigation.</p>
+    </div>
+    <a class="button button-secondary back-button" href="{% url 'dashboard' %}"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M14 9H4m4 4-4-4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> All orders</a>
+  </section>
+
+  <section class="detail-overview">
+    <div class="detail-overview-main">
+      <div class="overview-customer">
+        <span class="customer-avatar">{{ order.customer.name|slice:":1" }}</span>
+        <div><span class="field-label">Customer</span><strong>{{ order.customer.name }}</strong><span class="muted">{{ order.customer.customer_id }}</span></div>
+      </div>
+      <div class="overview-amount"><span class="field-label">Order amount</span><strong>${{ order.amount|floatformat:2 }}</strong></div>
+      <div class="overview-date"><span class="field-label">Placed</span><strong>{{ order.ordered_at|date:"M j, Y" }}</strong><span class="muted">{{ order.ordered_at|date:"g:i A" }} UTC</span></div>
+    </div>
+    <div class="overview-risk risk-border-{{ order.risk_level }}">
+      <div class="overview-risk-top"><span class="field-label">Risk score</span><span class="risk-badge risk-{{ order.risk_level }}"><span class="risk-dot"></span>{{ order.get_risk_level_display }}</span></div>
+      <div class="overview-score">{{ order.risk_score }}<span>/100</span></div>
+      <div class="score-track overview-track"><span class="score-fill fill-{{ order.risk_level }}" style="width: {{ order.risk_score }}%"></span></div>
+    </div>
+  </section>
+
+  <div class="detail-grid">
+    <div class="detail-main-column">
+      <section class="content-card">
+        <div class="section-heading"><span class="section-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 6.5h13v10h-13zM6.5 6.5V4h7v2.5M7 10h6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><h2>Order information</h2><p>Transaction and delivery details</p></div></div>
+        <div class="info-grid">
+          <div class="info-field"><span class="field-label">Payment method</span><strong>{{ order.payment_method }}</strong></div>
+          <div class="info-field"><span class="field-label">Payment attempts</span><strong>{{ order.payment_attempts }}</strong></div>
+          <div class="info-field info-full"><span class="field-label">Delivery address</span><strong>{{ order.delivery_address }}</strong></div>
+          <div class="info-field info-full"><span class="field-label">Products</span>
+            <div class="product-list">
+              {% for item in order.items.all %}
+                <div class="product-row"><span class="product-thumb" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M4 7h12v9H4zM7 7V5a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg></span><span class="product-name"><strong>{{ item.product_name }}</strong><small>{{ item.category }} · Qty {{ item.quantity }}</small></span><strong>${{ item.unit_price|floatformat:2 }}</strong></div>
+              {% empty %}
+                <p class="muted">No product details were recorded for this order.</p>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content-card signals-card">
+        <div class="section-heading"><span class="section-icon signal-section-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5 18 17H2zM10 7v4.5m0 2.5h.01" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><h2>Risk analysis</h2><p>Transparent scoring based on observed order data</p></div></div>
+        {% if order.signals.all %}
+          <div class="signal-list">
+            {% for signal in order.signals.all %}
+              <article class="signal-item">
+                <span class="signal-mark"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="m4.5 9 3 3 6-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                <div class="signal-copy"><h3>{{ signal.label }}</h3><p>{{ signal.description }}</p></div>
+                <span class="signal-points">+{{ signal.points }} pts</span>
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="no-signals"><span class="no-signal-check">✓</span><div><strong>No unusual signals detected</strong><p>The current order data did not meet any configured risk rules.</p></div></div>
+        {% endif %}
+        <div class="score-method"><span>Score method</span><p>Signal contributions are added together and capped at 100. Low: 0–30 · Medium: 31–60 · High: 61–100.</p></div>
+      </section>
+
+      <section class="content-card ai-card" id="ai-explanation">
+        <div class="section-heading"><span class="section-icon ai-section-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5a6 6 0 0 0-3.5 10.9V16h7v-2.6A6 6 0 0 0 10 2.5ZM7.5 18h5M8 7.5c.4-.8 1.1-1.2 2-1.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><h2>AI explanation</h2><p>A concise summary of the detected evidence</p></div></div>
+        {% if order.ai_explanation %}
+          <div class="explanation-copy" id="explanation-copy">{{ order.ai_explanation|linebreaksbr }}</div>
+          <p class="explanation-meta" id="explanation-meta">Generated{% if order.ai_explanation_generated_at %} {{ order.ai_explanation_generated_at|date:"M j, Y, g:i A" }} UTC{% endif %}. For reviewer context only.</p>
+        {% else %}
+          <div class="explanation-placeholder" id="explanation-placeholder"><span class="placeholder-spark" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M9 2.5v13M2.5 9h13" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span><p>Generate an explanation grounded only in this order's detected signals. The risk engine does not depend on AI.</p></div>
+          <div class="explanation-copy is-hidden" id="explanation-copy"></div>
+          <p class="explanation-meta is-hidden" id="explanation-meta"></p>
+        {% endif %}
+        {% if not ai_enabled and not order.ai_explanation %}
+          <p class="inline-notice" id="ai-config-notice">AI explanation is currently unavailable. Add <code>OPENAI_API_KEY</code> in Replit Secrets to enable it.</p>
+        {% endif %}
+        <div class="explanation-actions">
+          <button class="button button-primary" type="button" id="generate-explanation" data-endpoint="/risk-api/v1/orders/{{ order.pk }}/explanation/" data-regenerate="{% if order.ai_explanation %}true{% else %}false{% endif %}">
+            <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M9 2.5v13M2.5 9h13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <span>{% if order.ai_explanation %}Regenerate explanation{% else %}Generate explanation{% endif %}</span>
+          </button>
+          <span class="button-support">Runs only when you request it</span>
+        </div>
+        <div class="action-message" id="explanation-message" role="status" aria-live="polite"></div>
+      </section>
+    </div>
+
+    <aside class="detail-side-column">
+      <section class="content-card behaviour-card">
+        <div class="section-heading"><span class="section-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="6" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4 17c.5-3 2.5-4.5 6-4.5s5.5 1.5 6 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span><div><h2>Customer behaviour</h2><p>Historical context for this customer</p></div></div>
+        <div class="behaviour-stats">
+          <div class="behaviour-stat"><span>Previous orders</span><strong>{{ behaviour.previous_order_count }}</strong></div>
+          <div class="behaviour-stat"><span>Average order value</span><strong>{% if behaviour.average_previous_order_value %}${{ behaviour.average_previous_order_value|floatformat:2 }}{% else %}—{% endif %}</strong></div>
+          <div class="behaviour-stat"><span>Orders in last 30 days</span><strong>{{ behaviour.recent_order_frequency }}</strong></div>
+          <div class="behaviour-stat"><span>Previous payment attempts</span><strong>{{ behaviour.previous_payment_attempts }}</strong></div>
+        </div>
+        <div class="address-history"><span class="field-label">Previous delivery addresses</span>
+          {% for address in behaviour.previous_delivery_addresses %}
+            <p>{{ address }}</p>
+          {% empty %}
+            <p class="muted">No previous addresses on record.</p>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="content-card investigation-card">
+        <div class="section-heading"><span class="section-icon investigation-section-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 3.5h10v13H5zM7.5 7h5M7.5 10h5M7.5 13h3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><h2>Investigation</h2><p>Human review and notes</p></div></div>
+        <form id="status-form" class="status-form" data-endpoint="/risk-api/v1/orders/{{ order.pk }}/investigation/">
+          {% csrf_token %}
+          <label for="investigation-status">Review status</label>
+          <div class="status-control">
+            <select name="status" id="investigation-status">
+              {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if order.investigation_status == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <button class="button button-secondary button-small" type="submit">Save</button>
+          </div>
+          <div class="action-message" id="status-message" role="status" aria-live="polite"></div>
+        </form>
+        <div class="notes-section">
+          <div class="notes-title"><h3>Investigation notes</h3><span class="count-pill" id="note-count">{{ order.notes.count }}</span></div>
+          <div class="notes-list" id="notes-list">
+            {% for note in order.notes.all %}
+              <article class="note-item"><div class="note-meta"><strong>{{ note.created_by }}</strong><time>{{ note.created_at|date:"M j, Y · g:i A" }} UTC</time></div><p>{{ note.note|linebreaksbr }}</p></article>
+            {% empty %}
+              <p class="notes-empty" id="notes-empty">No notes yet. Add observations from your review.</p>
+            {% endfor %}
+          </div>
+          <form id="note-form" class="note-form" data-endpoint="/risk-api/v1/orders/{{ order.pk }}/notes/">
+            {% csrf_token %}
+            <label class="visually-hidden" for="note-input">Add an investigation note</label>
+            <textarea id="note-input" name="note" rows="3" maxlength="2000" placeholder="Add an observation or next step…" required></textarea>
+            <div class="note-form-footer"><span>Visible to reviewers</span><button class="button button-secondary button-small" type="submit">Add note</button></div>
+            <div class="action-message" id="note-message" role="status" aria-live="polite"></div>
+          </form>
+        </div>
+      </section>
+    </aside>
+  </div>
+  <div class="decision-note"><span class="decision-note-icon">i</span><p><strong>Human decision required.</strong> This risk assessment is decision support, not a determination of fraud. Review all available context.</p></div>
+{% endblock %}

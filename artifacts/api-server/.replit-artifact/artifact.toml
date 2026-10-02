@@ -1,32 +1,32 @@
 kind = "api"
-previewPath = "/api" # TODO - should be excluded from preview in the first place
-title = "API Server"
+previewPath = "/"
+title = "Order Detector"
 version = "1.0.0"
 id = "3B4_FFSkEVBkAeYMFRJ2e"
 
 [[services]]
 localPort = 8080
-name = "API Server"
-paths = ["/api"]
+name = "Order Detector"
+paths = ["/"]
 
 [services.development]
-run = "pnpm --filter @workspace/api-server run dev"
+run = "cd ../.. && python manage.py migrate && python manage.py seed_orders && python manage.py runserver 0.0.0.0:8080"
 
 [services.production]
 
 [services.production.build]
-args = ["pnpm", "--filter", "@workspace/api-server", "run", "build"]
+args = ["python", "manage.py", "collectstatic", "--noinput"]
 
 [services.production.build.env]
-NODE_ENV = "production"
+DEBUG = "1"
 
 [services.production.run]
-# we don't run through pnpm to make startup faster in production
-args = ["node", "--enable-source-maps", "artifacts/api-server/dist/index.mjs"]
+args = ["sh", "-c", "python manage.py migrate && python manage.py seed_orders && gunicorn config.wsgi:application --bind 0.0.0.0:8080 --workers 2"]
 
 [services.production.run.env]
 PORT = "8080"
-NODE_ENV = "production"
+DEBUG = "0"
+ALLOWED_HOSTS = ".replit.app,.replit.dev,localhost,127.0.0.1"
 
 [services.production.health.startup]
-path = "/api/healthz"
+path = "/"

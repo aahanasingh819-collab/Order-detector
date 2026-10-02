@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · Order Detector{% endblock %}
+{% block content %}
+  <section class="page-heading dashboard-heading">
+    <div>
+      <p class="eyebrow">ORDER INTELLIGENCE</p>
+      <h1>Order review</h1>
+      <p class="page-description">See the signals. Review the evidence. Keep the final decision human.</p>
+    </div>
+    <div class="heading-meta"><span class="live-dot"></span> Risk monitoring active</div>
+  </section>
+
+  <section class="summary-grid" aria-label="Order risk summary">
+    <article class="summary-card summary-total">
+      <div class="summary-label"><span class="summary-icon icon-total">↗</span> Total orders</div>
+      <div class="summary-value">{{ summary.total }}</div>
+      <div class="summary-caption">Across all risk levels</div>
+    </article>
+    <article class="summary-card">
+      <div class="summary-label"><span class="summary-icon icon-low">✓</span> Low risk</div>
+      <div class="summary-value">{{ summary.low }}</div>
+      <div class="summary-caption"><span class="risk-dot low-dot"></span> Scores from 0–30</div>
+    </article>
+    <article class="summary-card">
+      <div class="summary-label"><span class="summary-icon icon-medium">!</span> Medium risk</div>
+      <div class="summary-value">{{ summary.medium }}</div>
+      <div class="summary-caption"><span class="risk-dot medium-dot"></span> Scores from 31–60</div>
+    </article>
+    <article class="summary-card">
+      <div class="summary-label"><span class="summary-icon icon-high">↑</span> High risk</div>
+      <div class="summary-value">{{ summary.high }}</div>
+      <div class="summary-caption"><span class="risk-dot high-dot"></span> Scores from 61–100</div>
+    </article>
+    <article class="summary-card summary-average">
+      <div class="summary-label"><span class="summary-icon icon-average">◌</span> Average score</div>
+      <div class="summary-value">{{ summary.average_score }}<span class="value-unit">/100</span></div>
+      <div class="summary-caption">Calculated across all orders</div>
+    </article>
+  </section>
+
+  <section id="orders" class="orders-panel">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title-row"><h2>Orders</h2><span class="count-pill">{{ page.paginator.count }}</span></div>
+        <p class="panel-subtitle">Search and prioritize orders for human review.</p>
+      </div>
+      <form class="filter-form" method="get" action="{% url 'dashboard' %}">
+        <label class="search-box">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.8" cy="8.8" r="5.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m13 13 4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <span class="visually-hidden">Search orders</span>
+          <input type="search" name="q" value="{{ query }}" placeholder="Search orders or customers">
+        </label>
+        <label class="select-wrap">
+          <span class="visually-hidden">Filter by risk level</span>
+          <select name="risk">
+            <option value="">All risk levels</option>
+            {% for value, label in risk_choices %}
+              <option value="{{ value }}" {% if selected_risk == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="select-wrap sort-select">
+          <span class="visually-hidden">Sort orders</span>
+          <select name="sort">
+            <option value="newest" {% if selected_sort == "newest" %}selected{% endif %}>Newest first</option>
+            <option value="oldest" {% if selected_sort == "oldest" %}selected{% endif %}>Oldest first</option>
+            <option value="risk" {% if selected_sort == "risk" %}selected{% endif %}>Highest risk</option>
+            <option value="amount" {% if selected_sort == "amount" %}selected{% endif %}>Highest amount</option>
+          </select>
+        </label>
+        <button class="button button-filter" type="submit">Apply</button>
+        {% if query or selected_risk or selected_sort != "newest" %}
+          <a class="clear-link" href="{% url 'dashboard' %}#orders">Clear</a>
+        {% endif %}
+      </form>
+    </div>
+
+    {% if page.object_list %}
+      <div class="table-scroll">
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th scope="col">Order</th>
+              <th scope="col">Customer</th>
+              <th scope="col">Amount</th>
+              <th scope="col">Date &amp; time</th>
+              <th scope="col">Payment</th>
+              <th scope="col">Risk score</th>
+              <th scope="col">Risk level</th>
+              <th scope="col"><span class="visually-hidden">Open order</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order in page.object_list %}
+              <tr class="{% if order.risk_level == 'high' %}high-order-row{% endif %}">
+                <td><a class="order-id" href="{% url 'order-detail' order.pk %}">{{ order.order_number }}</a><span class="order-status">{{ order.get_investigation_status_display }}</span></td>
+                <td><span class="customer-name">{{ order.customer.name }}</span><span class="customer-id">{{ order.customer.customer_id }}</span></td>
+                <td class="amount-cell">${{ order.amount|floatformat:2 }}</td>
+                <td><span class="date-main">{{ order.ordered_at|date:"M j, Y" }}</span><span class="date-sub">{{ order.ordered_at|date:"g:i A" }} UTC</span></td>
+                <td>{{ order.payment_method }}</td>
+                <td>
+                  <div class="score-cell">
+                    <span class="score-number score-{{ order.risk_level }}">{{ order.risk_score }}</span>
+                    <span class="score-track"><span class="score-fill fill-{{ order.risk_level }}" style="width: {{ order.risk_score }}%"></span></span>
+                  </div>
+                </td>
+                <td><span class="risk-badge risk-{{ order.risk_level }}"><span class="risk-dot"></span>{{ order.get_risk_level_display }}</span></td>
+                <td><a class="row-link" href="{% url 'order-detail' order.pk %}" aria-label="Review {{ order.order_number }}"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>Showing {{ page.start_index }}–{{ page.end_index }} of {{ page.paginator.count }} orders</span>
+        {% if page.paginator.num_pages > 1 %}
+          <nav class="pagination" aria-label="Order pages">
+            {% if page.has_previous %}<a href="?q={{ query|urlencode }}&amp;risk={{ selected_risk }}&amp;sort={{ selected_sort }}&amp;page={{ page.previous_page_number }}#orders" aria-label="Previous page">←</a>{% else %}<span class="disabled">←</span>{% endif %}
+            <span>Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+            {% if page.has_next %}<a href="?q={{ query|urlencode }}&amp;risk={{ selected_risk }}&amp;sort={{ selected_sort }}&amp;page={{ page.next_page_number }}#orders" aria-label="Next page">→</a>{% else %}<span class="disabled">→</span>{% endif %}
+          </nav>
+        {% endif %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <span class="empty-icon"><svg viewBox="0 0 36 36" aria-hidden="true"><path d="M7 10h22v19H7zM12 15h12M12 20h8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 6h14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+        {% if summary.total %}
+          <h3>No matching orders</h3>
+          <p>Try another search or clear the selected risk filter.</p>
+          <a class="button button-secondary" href="{% url 'dashboard' %}">Show all orders</a>
+        {% else %}
+          <h3>Your review queue is ready</h3>
+          <p>There are no orders yet. Load the fictional demo orders to explore the dashboard and investigation workflow.</p>
+          <code>python manage.py seed_orders</code>
+        {% endif %}
+      </div>
+    {% endif %}
+  </section>
+  <div class="decision-note"><span class="decision-note-icon">i</span><p><strong>Decision support, not an automatic verdict.</strong> Risk scores summarize observable signals. Review the order context before making a decision.</p></div>
+{% endblock %}

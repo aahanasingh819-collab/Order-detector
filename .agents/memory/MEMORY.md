@@ -1,0 +1,1 @@
+- [Managed artifact workflows](managed-artifact-workflows.md) — managed development commands run from the artifact directory; stale processes can survive workflow removal.

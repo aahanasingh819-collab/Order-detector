@@ -1,0 +1,47 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7fb">
+    <title>{% block title %}Order Detector{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="{% static 'favicon.svg' %}">
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <script src="{% static 'js/app.js' %}" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="{% url 'dashboard' %}" aria-label="Order Detector home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 28 28" fill="none">
+              <path d="M5 7.5h18v13H5z" stroke="currentColor" stroke-width="1.7" rx="2"/>
+              <path d="M9 11h10M9 15h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              <path d="m17 18 2 2 4-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="brand-copy"><strong>Order Detector</strong><small>Risk review workspace</small></span>
+        </a>
+        <nav class="main-nav" aria-label="Main navigation">
+          <a class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
+            <span class="nav-dot" aria-hidden="true"></span> Dashboard
+          </a>
+          <a href="{% url 'dashboard' %}#orders">
+            <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M3 4.5h12M3 9h12M3 13.5h12M6 3v3M12 7.5v3M8 12v3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            Orders
+          </a>
+        </nav>
+        <div class="reviewer-chip"><span class="reviewer-avatar">R</span><span>Reviewer</span></div>
+      </header>
+      <main id="main" class="main-content">
+        {% block content %}{% endblock %}
+      </main>
+      <footer class="site-footer">
+        <span>Order Detector</span>
+        <span>Risk scores support review. People make the decisions.</span>
+      </footer>
+    </div>
+  </body>
+</html>

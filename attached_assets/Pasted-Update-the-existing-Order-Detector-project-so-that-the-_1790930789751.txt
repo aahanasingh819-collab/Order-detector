@@ -1,0 +1,77 @@
+Update the existing Order Detector project so that the AI explanation feature uses the official OpenAI API with my own OpenAI API key instead of Replit's built-in AI integration.
+
+IMPORTANT:
+
+* Keep the existing project architecture unchanged.
+* Backend MUST remain Python Django and/or Django REST Framework.
+* Do NOT switch to FastAPI, Flask, Node.js, Express, Next.js, Firebase, Supabase, or another backend.
+* Keep the existing Django templates, HTML, CSS, vanilla JavaScript, SQLite setup, risk scoring, dashboard, investigation features, and all existing functionality.
+
+AI INTEGRATION:
+
+1. Remove/replace the current Replit OpenAI/AI integration.
+2. Use the official OpenAI Python SDK.
+3. Read the API key from an environment variable:
+   OPENAI_API_KEY
+4. Never hard-code the API key anywhere in the source code.
+5. Never expose the API key to frontend JavaScript, HTML, API responses, GitHub, or users.
+6. In Replit, the key must be stored as a Secret/Environment Variable.
+7. Create/update `.env.example` with:
+   OPENAI_API_KEY=your_openai_api_key_here
+   Do NOT put the real key in `.env.example`.
+
+DJANGO IMPLEMENTATION:
+
+* Keep the OpenAI API call on the Django backend.
+* When a reviewer clicks "Generate AI Explanation", the frontend should call our Django endpoint.
+* Django should collect the relevant order/risk information and send it to OpenAI.
+* The AI response should explain the unusual risk signals in simple, factual language.
+* The AI must only use information actually provided by our application.
+* Do not allow the AI to automatically declare an order as fraud.
+* The final decision remains with the human reviewer.
+
+ERROR HANDLING:
+
+* If OPENAI_API_KEY is missing, the main application must still work.
+* Risk scoring and the dashboard must NOT depend on OpenAI.
+* Show a clear message such as "AI explanation is currently unavailable" instead of crashing.
+* Handle API errors, timeouts, and rate limits gracefully.
+
+COST/USAGE PROTECTION:
+
+* Do not call OpenAI automatically every time an order page loads.
+* Only call OpenAI when the reviewer explicitly requests an explanation.
+* Store/cache the generated explanation so repeatedly viewing the same order does not unnecessarily create another API request.
+* Keep the existing regenerate explanation functionality if it exists.
+
+SECURITY:
+
+* Make sure the API key is never committed to Git.
+* Check `.gitignore` and ensure `.env` is ignored.
+* Do not print the API key in logs.
+* Do not send the API key to the browser.
+
+OPENAI SDK:
+Use the current official OpenAI Python SDK and its supported API rather than manually making unauthenticated HTTP requests.
+
+After making the changes:
+
+1. Install the required Python package.
+2. Run Django migrations if needed.
+3. Start the Django development server.
+4. Test the existing dashboard.
+5. Test risk scoring.
+6. Test the AI explanation endpoint with the API key available.
+7. Test the application behavior when the API key is missing.
+8. Check that no secret is exposed in frontend code or Git-tracked files.
+
+Do NOT rewrite unrelated parts of the project.
+
+At the end, clearly tell me:
+
+* Which files you changed.
+* How the OpenAI integration works.
+* Where I need to add my OPENAI_API_KEY in Replit.
+* The exact command(s) needed to run the project.
+* Whether the AI explanation was successfully tested.
+* Whether the project is ready for deployment.
