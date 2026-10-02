@@ -45,6 +45,7 @@ for key in ("REPLIT_DEV_DOMAIN", "REPLIT_DOMAINS"):
             CSRF_TRUSTED_ORIGINS.append(domain)
 CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(CSRF_TRUSTED_ORIGINS))
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+X_FRAME_OPTIONS = "SAMEORIGIN"
 
 INSTALLED_APPS = [
     "django.contrib.admin",
